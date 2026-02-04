@@ -142,7 +142,7 @@ export default function HtmlCssKurs() {
             <PaymentModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                courseTitle={courseTitle}
+                productTitle={courseTitle}
                 price={coursePrice}
             />
         </>

@@ -69,7 +69,7 @@ export default function CourseCard({ title, description, price, originalPrice, i
             <PaymentModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                courseTitle={title}
+                productTitle={title}
                 price={price}
             />
         </>

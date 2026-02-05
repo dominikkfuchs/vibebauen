@@ -14,6 +14,21 @@ export default function Pricing() {
 
     const products = [
         {
+            id: 'intro',
+            name: 'Die Vibe-Einführung',
+            tagline: 'Teste Vibe Coding risikofrei',
+            price: 27.97,
+            originalPrice: 47,
+            features: [
+                'Einführung ins Vibe Coding',
+                'Dein erstes KI-Projekt',
+                'Grundlagen-Video-Kurs',
+                'Ressourcen & Templates',
+            ],
+            highlighted: false,
+            cta: 'Jetzt starten',
+        },
+        {
             id: 'starter',
             name: 'Das KI-Starter-Kit',
             tagline: 'Dein Einstieg ins Vibe Coding',
@@ -89,13 +104,13 @@ export default function Pricing() {
                     </div>
 
                     {/* Pricing Cards */}
-                    <div className="grid md:grid-cols-3 gap-8 lg:gap-6 max-w-6xl mx-auto">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
                         {products.map((product) => (
                             <div
                                 key={product.id}
                                 className={`relative rounded-3xl p-8 transition-all duration-300 ${product.highlighted
-                                        ? 'bg-gradient-to-b from-text-primary to-slate-900 text-white transform md:scale-105 shadow-2xl'
-                                        : 'bg-white border border-accent-primary/10 hover:border-accent-primary/30 hover:shadow-xl'
+                                    ? 'bg-gradient-to-b from-text-primary to-slate-900 text-white transform md:scale-105 shadow-2xl'
+                                    : 'bg-white border border-accent-primary/10 hover:border-accent-primary/30 hover:shadow-xl'
                                     }`}
                             >
                                 {/* Badge */}
@@ -157,8 +172,8 @@ export default function Pricing() {
                                 <button
                                     onClick={() => handleSelectProduct(product.name, product.price)}
                                     className={`w-full py-4 rounded-xl font-semibold transition-all ${product.highlighted
-                                            ? 'bg-white text-text-primary hover:bg-white/90 shadow-lg'
-                                            : 'btn-primary'
+                                        ? 'bg-white text-text-primary hover:bg-white/90 shadow-lg'
+                                        : 'btn-primary'
                                         }`}
                                 >
                                     {product.cta}

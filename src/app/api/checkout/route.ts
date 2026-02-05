@@ -7,49 +7,40 @@ export async function POST(req: Request) {
 
         // Validation
         if (!name || !email || !price || !title) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Bitte fülle alle Pflichtfelder aus.' }, { status: 400 });
         }
 
-        const courseTitleEncoded = encodeURIComponent(title);
+        const productTitleEncoded = encodeURIComponent(title);
+        const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-        // Handle standard non-Stripe methods (Invoice, PayPal, Klarna)
-        // In a real app, you would save the order to the DB here.
-        if (['invoice', 'paypal', 'klarna'].includes(paymentMethod)) {
-            console.log(`[Order Created] Method: ${paymentMethod}, User: ${name} (${email}), Course: ${title}, Amount: ${price}`);
 
-            // Simulate processing delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            return NextResponse.json({
-                url: `/success?method=${paymentMethod}&course=${courseTitleEncoded}`
-            });
-        }
 
         // Stripe Card Payment
         if (!process.env.STRIPE_SECRET_KEY) {
-            // Fallback for demo without keys
-            console.warn("Stripe API keys missing. Simulating success.");
-            console.log(`[Order Created] Method: CARD (Simulated), User: ${name} (${email}), Course: ${title}, Amount: ${price}`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            return NextResponse.json({ url: `/success?method=card&course=${courseTitleEncoded}&simulated=true` });
+            console.error("STRIPE_SECRET_KEY is not configured");
+            return NextResponse.json(
+                { error: 'Zahlungssystem nicht konfiguriert. Bitte kontaktiere den Support.' },
+                { status: 500 }
+            );
         }
 
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-            apiVersion: '2024-12-18.acacia' as any,
+            apiVersion: '2025-12-15.clover',
         });
 
+        // Create Stripe Checkout Session
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            customer_email: email, // Pre-fill email in Stripe
+            customer_email: email,
             line_items: [
                 {
                     price_data: {
                         currency: 'eur',
                         product_data: {
                             name: title,
+                            description: 'VibeBauen.de - Vibe Coding Akademie',
                         },
-                        unit_amount: price * 100, // Amount in cents
+                        unit_amount: Math.round(price * 100), // Amount in cents
                     },
                     quantity: 1,
                 },
@@ -57,15 +48,25 @@ export async function POST(req: Request) {
             mode: 'payment',
             metadata: {
                 customer_name: name,
-                course_title: title,
+                customer_email: email,
+                product_title: title,
+                price_eur: price.toString(),
             },
-            success_url: `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}&course=${courseTitleEncoded}&method=card`,
-            cancel_url: `${req.headers.get('origin')}/cancel`,
+            success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}&product=${productTitleEncoded}&method=card`,
+            cancel_url: `${origin}/cancel`,
+            locale: 'de', // German language for Stripe Checkout
         });
 
         return NextResponse.json({ url: session.url });
-    } catch (err: any) {
-        console.error(err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+
+    } catch (err: unknown) {
+        console.error('Checkout error:', err);
+
+        const errorMessage = err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist aufgetreten.';
+
+        return NextResponse.json(
+            { error: errorMessage },
+            { status: 500 }
+        );
     }
 }
